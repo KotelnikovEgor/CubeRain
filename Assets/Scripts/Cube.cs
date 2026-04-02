@@ -1,6 +1,5 @@
 using UnityEngine;
 
-[RequireComponent (typeof(Renderer))]
 public class Cube : MonoBehaviour
 {
     public bool IsFell { get; private set; } = false;

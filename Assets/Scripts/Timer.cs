@@ -2,41 +2,39 @@ using System;
 using System.Collections;
 using UnityEngine;
 
+[RequireComponent(typeof(CollisionDetector), typeof(Cube))]
 public class Timer : MonoBehaviour
 {
-    [SerializeField] private Platform[] _platforms;
-    [SerializeField] private Spawner _spawner;
+    private CollisionDetector _collisionDetector;
+    private Cube _cube;
 
     private readonly float _minTime = 2f;
     private readonly float _maxTime = 5f;
 
     public event Action<Cube> TimeUp;
 
-    private void OnEnable()
+    private void Awake()
     {
-        foreach (var platform in _platforms)
-        {
-            platform.OnFell += StartTimer;
-        }
+        _collisionDetector = GetComponent<CollisionDetector>();
+        _cube = GetComponent<Cube>();
+
+        _collisionDetector.Fell += StartTimer;
     }
 
-    private void OnDisable()
+    private void OnDestroy()
     {
-        foreach (var platform in _platforms)
-        {
-            platform.OnFell -= StartTimer;
-        }
+        _collisionDetector.Fell -= StartTimer;
     }
 
-    private void StartTimer(Cube cube)
+    private void StartTimer(Cube _)
     {
-        StartCoroutine(TimerCoroutine(cube));
+        StartCoroutine(TimerCoroutine());
     }
 
-    private IEnumerator TimerCoroutine(Cube cube)
+    private IEnumerator TimerCoroutine()
     {
         yield return new WaitForSeconds(GetRandomTime());
-        TimeUp?.Invoke(cube);
+        TimeUp?.Invoke(_cube);
     }
 
     private float GetRandomTime()

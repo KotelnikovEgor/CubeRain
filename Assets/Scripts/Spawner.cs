@@ -1,9 +1,9 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Pool;
 
 public class Spawner : MonoBehaviour
 {
-    [SerializeField] private Timer _timer;
     [SerializeField] private Cube _prefab;
     [SerializeField] private float _minPosition;
     [SerializeField] private float _maxPosition;
@@ -19,17 +19,16 @@ public class Spawner : MonoBehaviour
 
     private void Start()
     {
-        InvokeRepeating(nameof(GetCube), 0f, _repeatRate);
+        StartCoroutine(GetCubeCoroutine());
     }
 
-    private void OnEnable()
+    private IEnumerator GetCubeCoroutine()
     {
-        _timer.TimeUp += ReleaseCube;
-    }
-
-    private void OnDisable()
-    {
-        _timer.TimeUp -= ReleaseCube;
+        while (true)
+        {
+            yield return new WaitForSeconds(_repeatRate);
+            GetCube();
+        }
     }
 
     private void GetCube()
@@ -41,19 +40,21 @@ public class Spawner : MonoBehaviour
     {
         _pool = new ObjectPool<Cube>(
             createFunc: () => Instantiate(_prefab),
-            actionOnGet: (@object) => ActionOnGet(@object),
+            actionOnGet: (@object) => PerformActionOnGet(@object),
             actionOnRelease: (@object) => @object.gameObject.SetActive(false)
             );
     }
 
-    private void ActionOnGet(Cube cube)
+    private void PerformActionOnGet(Cube cube)
     {
         cube.transform.SetPositionAndRotation(GetRandomPosition(), Quaternion.identity);
         cube.gameObject.SetActive(true);
+        cube.GetComponent<Timer>().TimeUp += ReleaseCube;
     }
 
     private void ReleaseCube(Cube cube)
     {
+        cube.GetComponent<Timer>().TimeUp -= ReleaseCube;
         _pool.Release(cube);
         cube.SetIsFell(false);
     }
