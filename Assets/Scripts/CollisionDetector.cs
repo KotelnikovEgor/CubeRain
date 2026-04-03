@@ -1,26 +1,25 @@
 using System;
 using UnityEngine;
 
-[RequireComponent(typeof(Cube))]
 public class CollisionDetector : MonoBehaviour
 {
-    private Cube _cube;
+    public event Action Fell;
 
-    public event Action<Cube> Fell;
+    public bool IsFell { get; private set; } = false;
 
-    private void Start()
+    public void SetIsFell(bool value)
     {
-        _cube = GetComponent<Cube>();
+        IsFell = value;
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (!_cube.IsFell)
+        if (!IsFell)
         {
             if (collision.gameObject.TryGetComponent<Platform>(out _))
             {
-                Fell?.Invoke(_cube);
-                _cube.SetIsFell(true);
+                Fell?.Invoke();
+                IsFell = true;
             }
         }
     }

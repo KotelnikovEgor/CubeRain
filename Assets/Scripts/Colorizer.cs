@@ -1,38 +1,25 @@
 using UnityEngine;
 
-[RequireComponent(typeof(Cube), typeof(CollisionDetector), typeof(Timer))]
 [RequireComponent(typeof(Renderer))]
 public class Colorizer : MonoBehaviour
 {
-    private Cube _cube;
-    private CollisionDetector _collisionDetector;
-    private Timer _timer;
     private Renderer _renderer;
     private Color _baseColor;
 
-    private void Awake()
+    private void Start()
     {
-        _cube = GetComponent<Cube>();
-        _collisionDetector = GetComponent<CollisionDetector>();
-        _timer = GetComponent<Timer>();
         _renderer = GetComponent<Renderer>();
         _baseColor = _renderer.material.color;
-
-        _collisionDetector.Fell += Colorize;
-        _timer.TimeUp += Colorize;
     }
 
-    private void OnDestroy()
+    public void Colorize()
     {
-        _collisionDetector.Fell -= Colorize;
+        _renderer.material.color = GetRandomColor();
     }
 
-    private void Colorize(Cube cube)
+    public void ColorizeInBase()
     {
-        if (!_cube.IsFell)
-            _renderer.material.color = GetRandomColor();
-        else
-            _renderer.material.color = _baseColor;
+        _renderer.material.color = _baseColor;
     }
 
     private Color GetRandomColor()

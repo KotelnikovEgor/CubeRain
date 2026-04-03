@@ -22,11 +22,22 @@ public class Spawner : MonoBehaviour
         StartCoroutine(GetCubeCoroutine());
     }
 
+    private void CreatePool()
+    {
+        _pool = new ObjectPool<Cube>(
+            createFunc: () => Instantiate(_prefab),
+            actionOnGet: (cube) => PerformActionOnGet(cube),
+            actionOnRelease: (cube) => cube.gameObject.SetActive(false)
+            );
+    }
+
     private IEnumerator GetCubeCoroutine()
     {
-        while (true)
+        WaitForSeconds seconds = new(_repeatRate);
+
+        while (enabled)
         {
-            yield return new WaitForSeconds(_repeatRate);
+            yield return seconds;
             GetCube();
         }
     }
@@ -36,27 +47,17 @@ public class Spawner : MonoBehaviour
         _pool.Get();
     }
 
-    private void CreatePool()
-    {
-        _pool = new ObjectPool<Cube>(
-            createFunc: () => Instantiate(_prefab),
-            actionOnGet: (@object) => PerformActionOnGet(@object),
-            actionOnRelease: (@object) => @object.gameObject.SetActive(false)
-            );
-    }
-
     private void PerformActionOnGet(Cube cube)
     {
         cube.transform.SetPositionAndRotation(GetRandomPosition(), Quaternion.identity);
         cube.gameObject.SetActive(true);
-        cube.GetComponent<Timer>().TimeUp += ReleaseCube;
+        cube.LifeExpired += ReleaseCube;
     }
 
     private void ReleaseCube(Cube cube)
     {
-        cube.GetComponent<Timer>().TimeUp -= ReleaseCube;
         _pool.Release(cube);
-        cube.SetIsFell(false);
+        cube.LifeExpired -= ReleaseCube;
     }
 
     private Vector3 GetRandomPosition()
